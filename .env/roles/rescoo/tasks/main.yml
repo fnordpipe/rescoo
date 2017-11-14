@@ -1,0 +1,77 @@
+---
+- name: create rescoo directories
+  file:
+    dest: '{{ item.dest }}'
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+  with_items:
+    - { dest: /var/lib/rescoo }
+
+    - { dest: /var/lib/rescoo/conf }
+    - { dest: /var/lib/rescoo/conf/etc }
+    - { dest: /var/lib/rescoo/conf/etc/portage }
+    - { dest: /var/lib/rescoo/conf/etc/portage/repos.conf }
+
+    - { dest: /var/lib/rescoo/rootfs }
+    - { dest: /var/lib/rescoo/rootfs/lib64 }
+    - { dest: /var/lib/rescoo/rootfs/usr }
+    - { dest: /var/lib/rescoo/rootfs/usr/lib64 }
+
+    - { dest: /var/lib/rescoo/distfiles }
+    - { dest: /var/lib/rescoo/packages }
+    - { dest: /var/lib/rescoo/deploy }
+    - { dest: /var/lib/rescoo/overlays }
+
+- name: fetch overay repositories
+  git:
+    repo: https://github.com/fnordpipe/fnordpipe-overlay.git
+    dest: /var/lib/rescoo/overlays/fnordpipe
+    version: master
+
+- name: create portage config
+  template:
+    src: etc/portage/make.conf.j2
+    dest: /var/lib/rescoo/conf/etc/portage/make.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: create bash profile
+  template:
+    src: root/.bash_profile.j2
+    dest: /root/.bash_profile
+    owner: root
+    group: root
+    mode: 0644
+
+- name: create rescoo symlinks
+  file:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+    force: yes
+    state: link
+  with_items:
+    - { src: lib64, dest: /var/lib/rescoo/rootfs/lib }
+    - { src: lib64, dest: /var/lib/rescoo/rootfs/usr/lib }
+    - { src: /usr/local/development/rescoo, dest: /var/lib/rescoo/overlays/rescoo }
+
+- name: create profile symlink
+  file:
+    src: /var/lib/rescoo/overlays/rescoo/profiles/rescoo/amd64
+    dest: /var/lib/rescoo/conf/etc/portage/make.profile
+    state: link
+
+- name: create repos conf
+  template:
+    src: etc/portage/repos.conf/rescoo.conf.j2
+    dest: /var/lib/rescoo/conf/etc/portage/repos.conf/rescoo.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: install packages
+  portage:
+    package: cpio
+    state: present
