@@ -7,29 +7,31 @@ export BAKECONF="${BAKEROOT}/conf"
 
 bake() {
   BAKETIME=$(date "+%Y%m%d%H%M")
-  XENBLOB=$(basename $(realpath ${BAKEROOTFS}/boot/xen.gz))
   LINUXBLOB=$(basename $(realpath ${BAKEROOTFS}/boot/vmlinuz))
 
   install -d ${BAKEDEPLOY}/${BAKETIME}
-  install ${BAKEROOTFS}/boot/${XENBLOB} ${BAKEDEPLOY}/${BAKETIME}/xen.gz || :
   install ${BAKEROOTFS}/boot/${LINUXBLOB} ${BAKEDEPLOY}/${BAKETIME}/vmlinuz || :
-  install ${BAKEROOTFS}/usr/share/syslinux/gptmbr.bin ${BAKEDEPLOY}/${BAKETIME}/gptmbr.bin || :
-  install ${BAKEROOTFS}/usr/share/syslinux/mbr.bin ${BAKEDEPLOY}/${BAKETIME}/mbr.bin || :
-  install ${BAKEROOTFS}/usr/share/syslinux/libcom32.c32 ${BAKEDEPLOY}/${BAKETIME}/libcom32.c32 || :
-  install ${BAKEROOTFS}/usr/share/syslinux/mboot.c32 ${BAKEDEPLOY}/${BAKETIME}/mboot.c32 || :
   ebake -q --depclean
 
-  cat >> ${BAKEROOTFS}/etc/fstab <<EOF
-LABEL=BOOT /boot ext4 defaults 0 0
-/boot/conf/hostname /etc/conf.d/hostname none bind 0 0
-/boot/conf/net /etc/conf.d/net none bind 0 0
+  cat > ${BAKEROOTFS}/etc/conf.d/net <<EOF
+config_eth0="dhcp"
+dhcp_eth0="release nodns nontp nonis"
 EOF
 
-  echo 'rc_after="clock localmount"' >> ${BAKEROOTFS}/etc/conf.d/hostname
+  if [ ! -f ${BAKECONF}/root.key.pub ]; then
+    ssh-keygen -t ed25519 -f ${BAKECONF}/root.key -N '' -C rescue
+  fi
 
-  ln -snf net.lo ${BAKEROOTFS}/etc/init.d/net.sysinit0
+  install -d -m 0700 ${BAKEROOTFS}/root/.ssh
+  install -m 0600 ${BAKECONF}/root.key.pub ${BAKEROOTFS}/root/.ssh/authorized_keys
+
   ln -snf /etc/init.d/mdraid ${BAKEROOTFS}/etc/runlevels/boot/mdraid
-  ln -snf /etc/init.d/net.sysinit0 ${BAKEROOTFS}/etc/runlevels/default/net.sysinit0
+  ln -snf /etc/init.d/lvm ${BAKEROOTFS}/etc/runlevels/boot/lvm
+  ln -snf net.lo ${BAKEROOTFS}/etc/init.d/net.eth0
+  ln -snf /etc/init.d/net.eth0 ${BAKEROOTFS}/etc/runlevels/default/net.eth0
+  ln -snf /etc/init.d/sshd ${BAKEROOTFS}/etc/runlevels/default/sshd
+
+  ln -snf /dev/null ${BAKEROOTFS}/etc/udev/rules.d/80-net-setup-link.rules
 
   cd ${BAKEROOTFS}
   find . -not -path './boot/*' -print0 | \

@@ -15,6 +15,10 @@ IUSE=""
 
 RDEPEND="
   sys-boot/syslinux
+  sys-fs/cryptsetup
+  sys-fs/dosfstools
+  sys-fs/e2fsprogs
+  sys-fs/lvm2
   sys-fs/mdadm
   sys-kernel/linux-stable
   "
