@@ -14,7 +14,6 @@ KEYWORDS="amd64"
 IUSE=""
 
 RDEPEND="
-  net-misc/dhcpcd
   sys-boot/syslinux
   sys-fs/cryptsetup
   sys-fs/dosfstools
