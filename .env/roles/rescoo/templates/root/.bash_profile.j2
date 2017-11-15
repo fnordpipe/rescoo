@@ -15,7 +15,8 @@ bake() {
 
   cat > ${BAKEROOTFS}/etc/conf.d/net <<EOF
 config_eth0="dhcp"
-dhcp_eth0="release nodns nontp nonis"
+modules_eth0="udhcp"
+dhcp_eth0="release"
 EOF
 
   if [ ! -f ${BAKECONF}/root.key.pub ]; then
@@ -36,8 +37,18 @@ EOF
   ln -snf /etc/init.d/sshd ${BAKEROOTFS}/etc/runlevels/default/sshd
 
   ln -snf /dev/null ${BAKEROOTFS}/etc/udev/rules.d/80-net-setup-link.rules
+  ln -snf /dev/null ${BAKEROOTFS}/etc/udev/rules.d/80-net-name-slot.rules
 
   ln -snf /sbin/init ${BAKEROOTFS}/init
+
+  # see https://github.com/fnordpipe/rescoo/issues/3
+  install -m 0644 /etc/pam.d/useradd ${BAKEROOTFS}/etc/pam.d/useradd
+  # see https://github.com/fnordpipe/rescoo/issues/2
+  install -m 0644 /usr/lib/cracklib_dict.hwm ${BAKEROOTFS}/usr/lib/cracklib_dict.hwm
+  install -m 0644 /usr/lib/cracklib_dict.pwd ${BAKEROOTFS}/usr/lib/cracklib_dict.pwd
+  install -m 0644 /usr/lib/cracklib_dict.pwi ${BAKEROOTFS}/usr/lib/cracklib_dict.pwi
+  # see https://github.com/fnordpipe/rescoo/issues/1
+  useradd -d /var/empty -R ${BAKEROOTFS} -u 22 -U -c "see bug 637584" sshd
 
   cd ${BAKEROOTFS}
   find . -not -path './boot/*' -print0 | \
