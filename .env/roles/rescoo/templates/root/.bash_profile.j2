@@ -19,16 +19,10 @@ modules_eth0="udhcp"
 dhcp_eth0="release"
 EOF
 
-  if [ ! -f ${BAKECONF}/root.key.pub ]; then
-    ssh-keygen -t ed25519 -f ${BAKECONF}/root.key -N '' -C rescue
-  fi
-
   install -d -m 0555 ${BAKEROOTFS}/proc
   install -d -m 0555 ${BAKEROOTFS}/sys
   install -d -m 0755 ${BAKEROOTFS}/dev
   install -d -m 0755 ${BAKEROOTFS}/home ${BAKEROOTFS}/mnt ${BAKEROOTFS}/opt
-  install -d -m 0700 ${BAKEROOTFS}/root/.ssh
-  install -m 0600 ${BAKECONF}/root.key.pub ${BAKEROOTFS}/root/.ssh/authorized_keys
 
   ln -snf /etc/init.d/mdraid ${BAKEROOTFS}/etc/runlevels/boot/mdraid
   ln -snf /etc/init.d/lvm ${BAKEROOTFS}/etc/runlevels/boot/lvm

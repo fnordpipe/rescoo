@@ -4,7 +4,7 @@
 
 EAPI=6
 
-DESCRIPTION="meta package for rescue system rootfs"
+DESCRIPTION="pub key fetcher for ssh authorized keys"
 HOMEPAGE="https://www.fnordpipe.org"
 SRC_URI=""
 
@@ -14,12 +14,14 @@ KEYWORDS="amd64"
 IUSE=""
 
 RDEPEND="
-  net-misc/ssh-authorizedkeys
-  sys-boot/syslinux
-  sys-fs/cryptsetup
-  sys-fs/dosfstools
-  sys-fs/e2fsprogs
-  sys-fs/lvm2
-  sys-fs/mdadm
-  sys-kernel/linux-stable
+  net-misc/wget
   "
+
+S="${WORKDIR}"
+
+src_install() {
+  dodir /etc/local.d
+
+  exeinto /etc/local.d
+  newexe ${FILESDIR}/fetchAuthorizedKeys.sh fetchAuthorizedKeys.start
+}
