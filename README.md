@@ -5,7 +5,21 @@
 rescoo is a gentoo-based linux-distro that aims to be a rescue image.
 it's designed to be a single initram that boots via ipxe.
 
-# setup
+# howto
+
+## boot via ipxe
+
+upload a ssh authorized_keys file and your ipxe config to any public webspace.
+
+    #!ipxe
+    dhcp
+    set authkey-url http://example.org/ssh/authorized_keys
+    set base-url http://fnordpipe.he-hosting.de/rescoo/releases/amd64/autobuilds/latest/hardened
+    kernel ${base-url}/vmlinuz authkey=${authkey-url}
+    initrd ${base-url}/rootfs.cpio.gz
+    boot
+
+# build from source
 
 ## setup the toolchain
 
